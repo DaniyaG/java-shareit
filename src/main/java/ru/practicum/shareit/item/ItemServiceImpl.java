@@ -46,7 +46,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public ItemDto update(Long userId, Long itemId, ItemDto itemDto) {
         Item existingItem = itemRepository.findById(itemId)
-                .orElseThrow(() -> new NotFoundException("Вещь не найдена с id" + itemId));
+                .orElseThrow(() -> new NotFoundException(String.format("Вещь не найдена с id %d", itemId)));
 
         if (!existingItem.getOwner().getId().equals(userId)) {
             throw new ForbiddenException("Редактировать вещь может только владелец");
@@ -71,7 +71,7 @@ public class ItemServiceImpl implements ItemService {
     public ItemDto getById(Long itemId) {
         return itemRepository.findById(itemId)
                 .map(ItemMapper::toItemDto)
-                .orElseThrow(() -> new NotFoundException("Вещь не найдена с id" + itemId));
+                .orElseThrow(() -> new NotFoundException(String.format("Вещь не найдена с id %d", itemId)));
     }
 
     @Override

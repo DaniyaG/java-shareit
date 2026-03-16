@@ -15,6 +15,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ItemController {
     private static final String USER_ID_HEADER = "X-Sharer-User-Id";
+    public static final String ITEM_BY_ID = "/{itemId}";
 
     private final ItemService itemService;
 
@@ -27,7 +28,7 @@ public class ItemController {
         return itemService.create(userId, itemDto);
     }
 
-    @PatchMapping("/{itemId}")
+    @PatchMapping(ITEM_BY_ID)
     public ItemDto update(@RequestHeader(value = USER_ID_HEADER, required = false) Long userId,
                           @PathVariable Long itemId,
                           @RequestBody ItemDto itemDto) {
@@ -37,7 +38,7 @@ public class ItemController {
         return itemService.update(userId, itemId, itemDto);
     }
 
-    @GetMapping("/{itemId}")
+    @GetMapping(ITEM_BY_ID)
     public ItemDto getById(@PathVariable Long itemId) {
         return itemService.getById(itemId);
     }
