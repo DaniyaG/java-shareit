@@ -14,6 +14,7 @@ public class ItemMapper {
                 item.getRequestId()
         );
     }
+
     public static Item toItem(ItemDto itemDto) {
         if (itemDto == null) return null;
         Item item = new Item();
