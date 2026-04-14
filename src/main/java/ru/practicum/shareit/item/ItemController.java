@@ -1,15 +1,15 @@
 package ru.practicum.shareit.item;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.exception.ValidationException;
+import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.dto.ItemWithBookingsDto;
 
 import java.util.List;
 
-/**
- * TODO Sprint add-controllers.
- */
 @RestController
 @RequestMapping("/items")
 @RequiredArgsConstructor
@@ -20,39 +20,42 @@ public class ItemController {
     private final ItemService itemService;
 
     @PostMapping
-    public ItemDto create(@RequestHeader(value = USER_ID_HEADER, required = false) Long userId,
-                          @RequestBody ItemDto itemDto) {
-        if (userId == null) {
-            throw new ValidationException("Заголовок X-Sharer-User-Id обязателен");
-        }
+    public ItemDto create(@RequestHeader(USER_ID_HEADER) Long userId,
+                          @Valid @RequestBody ItemDto itemDto) {
         return itemService.create(userId, itemDto);
     }
 
     @PatchMapping(ITEM_BY_ID)
-    public ItemDto update(@RequestHeader(value = USER_ID_HEADER, required = false) Long userId,
+    public ItemDto update(@RequestHeader(USER_ID_HEADER) Long userId,
                           @PathVariable Long itemId,
                           @RequestBody ItemDto itemDto) {
-        if (userId == null) {
-            throw new ValidationException("Заголовок X-Sharer-User-Id обязателен");
-        }
         return itemService.update(userId, itemId, itemDto);
     }
 
     @GetMapping(ITEM_BY_ID)
-    public ItemDto getById(@PathVariable Long itemId) {
-        return itemService.getById(itemId);
+    public ItemWithBookingsDto getById(@RequestHeader(USER_ID_HEADER) Long userId,
+                           @PathVariable Long itemId) {
+
+        if (itemId == null) {
+            throw new ValidationException("Введите id вещи");
+        }
+        return itemService.getById(userId, itemId);
     }
 
     @GetMapping
-    public List<ItemDto> getAllByOwner(@RequestHeader(value = USER_ID_HEADER, required = false) Long userId) {
-        if (userId == null) {
-            throw new ValidationException("Заголовок X-Sharer-User-Id обязателен");
-        }
+    public List<ItemWithBookingsDto> getAllByOwner(@RequestHeader(USER_ID_HEADER) Long userId) {
         return itemService.getAllByOwner(userId);
     }
 
     @GetMapping("/search")
     public List<ItemDto> search(@RequestParam String text) {
         return itemService.search(text);
+    }
+
+    @PostMapping("/{itemId}/comment")
+    public CommentDto addComment(@RequestHeader(USER_ID_HEADER) Long userId,
+                                 @PathVariable Long itemId,
+                                 @Valid @RequestBody CommentDto commentDto) {
+        return itemService.createComment(userId, itemId, commentDto);
     }
 }

@@ -1,12 +1,48 @@
 package ru.practicum.shareit.booking;
 
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.*;
+import ru.practicum.shareit.booking.dto.BookingDto;
+import ru.practicum.shareit.booking.dto.BookingRequestDto;
 
-/**
- * TODO Sprint add-bookings.
- */
+import java.util.List;
+
 @RestController
 @RequestMapping(path = "/bookings")
+@RequiredArgsConstructor
 public class BookingController {
+    private static final String USER_ID_HEADER = "X-Sharer-User-Id";
+
+    private final BookingService bookingService;
+
+    @PostMapping
+    public BookingDto create(@RequestHeader(value = USER_ID_HEADER, required = false) Long userId,
+                             @RequestBody BookingRequestDto requestDto) {
+        return bookingService.create(userId, requestDto);
+    }
+
+    @PatchMapping("/{bookingId}")
+    public BookingDto approve(@RequestHeader(value = USER_ID_HEADER) Long userId,
+                              @PathVariable Long bookingId,
+                              @RequestParam Boolean approved) {
+        return bookingService.approve(userId, bookingId, approved);
+    }
+
+    @GetMapping("/{bookingId}")
+    public BookingDto getById(@RequestHeader(value = USER_ID_HEADER) Long userId,
+                              @PathVariable Long bookingId) {
+        return bookingService.getById(userId, bookingId);
+    }
+
+    @GetMapping
+    public List<BookingDto> getAllByBooker(@RequestHeader(value = USER_ID_HEADER) Long userId,
+                                           @RequestParam(defaultValue = "ALL") String state) {
+        return bookingService.getAllByBooker(userId, state);
+    }
+
+    @GetMapping("/owner")
+    public List<BookingDto> getAllByOwner(@RequestHeader(value = USER_ID_HEADER) Long userId,
+                                          @RequestParam(defaultValue = "ALL") String state) {
+        return bookingService.getAllByOwner(userId, state);
+    }
 }
