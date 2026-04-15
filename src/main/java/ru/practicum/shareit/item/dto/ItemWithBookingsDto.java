@@ -6,14 +6,25 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
+import java.util.List;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class ItemDto {
+public class ItemWithBookingsDto {
     Long id;
     String name;
     String description;
     Boolean available;
-    Long requestId;
+    BookingShortDto lastBooking;
+    BookingShortDto nextBooking;
+    List<CommentDto> comments;
+
+    @Data
+    @AllArgsConstructor
+    public static class BookingShortDto {
+        Long id;
+        Long bookerId;
+    }
 }
