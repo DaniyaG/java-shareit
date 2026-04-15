@@ -31,19 +31,20 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public BookingDto create(Long userId, BookingRequestDto dto) {
         User booker = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
+                .orElseThrow(() -> new NotFoundException(String.format("Пользователь с id %d не найден", userId)));
         Item item = itemRepository.findById(dto.getItemId())
-                .orElseThrow(() -> new NotFoundException("Вещь не найдена"));
+                .orElseThrow(() -> new NotFoundException(String.format("Вещь с id %d не найдена", dto.getItemId())));
 
         if (!item.getAvailable()) {
-            throw new ValidationException("Вещь недоступна для бронирования");
+            throw new ValidationException(String.format("Вещь '%s' (id %d) недоступна для бронирования", item.getName(), item.getId()));
         }
         if (item.getOwner().getId().equals(userId)) {
             throw new NotFoundException("Владелец не может забронировать свою вещь");
         }
 
         if (dto.getEnd().isBefore(dto.getStart()) || dto.getEnd().isEqual(dto.getStart())) {
-            throw new ValidationException("Дата окончания не может быть раньше начала");
+            throw new ValidationException("Некорректный интервал: начало %s, конец %s. Дата окончания должна быть позже начала.",
+                    dto.getStart(), dto.getEnd());
         }
 
         Booking booking = BookingMapper.toBooking(dto, item, booker);
@@ -57,13 +58,14 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public BookingDto approve(Long userId, Long bookingId, Boolean approved) {
         Booking booking = bookingRepository.findById(bookingId)
-                .orElseThrow(() -> new NotFoundException("Бронирование не найдено"));
+                .orElseThrow(() -> new NotFoundException(String.format("Бронирование с id %d не найдено", bookingId)));
 
         if (!booking.getItem().getOwner().getId().equals(userId)) {
             throw new ForbiddenException("Подтвердить бронирование может только владелец");
         }
         if (booking.getStatus() != BookingStatus.WAITING) {
-            throw new ValidationException("Статус уже изменен");
+            throw new ValidationException(String.format("Нельзя изменить статус бронирования. Текущий статус: %s",
+                    booking.getStatus()));
         }
 
         booking.setStatus(approved ? BookingStatus.APPROVED : BookingStatus.REJECTED);
@@ -74,15 +76,15 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public BookingDto getById(Long userId, Long bookingId) {
         userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
+                .orElseThrow(() -> new NotFoundException(String.format("Пользователь с id %d не найден", userId)));
         Booking booking = bookingRepository.findById(bookingId)
-                .orElseThrow(() -> new NotFoundException("Бронирование не найдено"));
+                .orElseThrow(() -> new NotFoundException(String.format("Бронирование с id %d не найдено", bookingId)));
 
         Long bookerId = booking.getBooker().getId();
         Long ownerId = booking.getItem().getOwner().getId();
 
         if (!userId.equals(bookerId) && !userId.equals(ownerId)) {
-            throw new NotFoundException("Доступ к бронированию разрешен только автору или владельцу вещи");
+            throw new NotFoundException(String.format("Пользователь id %d не является ни автором бронирования, ни владельцем вещи", userId));
         }
 
         return BookingMapper.toDto(booking);
@@ -122,7 +124,7 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public List<BookingDto> getAllByOwner(Long userId, String stateStr) {
-        userRepository.findById(userId).orElseThrow(() -> new NotFoundException("Пользователь не найден"));
+        userRepository.findById(userId).orElseThrow(() -> new NotFoundException(String.format("Пользователь с id %d не найден", userId)));
 
         BookingState state = parseState(stateStr);
         LocalDateTime now = LocalDateTime.now();
