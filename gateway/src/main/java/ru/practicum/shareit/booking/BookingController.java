@@ -45,7 +45,7 @@ public class BookingController {
     public ResponseEntity<Object> getAllByBooker(@RequestHeader(USER_ID_HEADER) long userId,
                                                  @RequestParam(name = "state", defaultValue = "ALL") String stateParam) {
         BookingState state = BookingState.from(stateParam)
-                .orElseThrow(() -> new IllegalArgumentException("Unknown state: " + stateParam));
+                .orElseThrow(() -> new IllegalArgumentException(String.format("Unknown state: %s", stateParam)));
         return bookingClient.getAllByBooker(userId, state.name());
     }
 
@@ -53,7 +53,7 @@ public class BookingController {
     public ResponseEntity<Object> getAllByOwner(@RequestHeader(USER_ID_HEADER) long userId,
                                                 @RequestParam(name = "state", defaultValue = "ALL") String stateParam) {
         BookingState state = BookingState.from(stateParam)
-                .orElseThrow(() -> new IllegalArgumentException("Unknown state: " + stateParam));
+                .orElseThrow(() -> new IllegalArgumentException(String.format("Unknown state: %s", stateParam)));
         return bookingClient.getAllByOwner(userId, state.name());
     }
 }
